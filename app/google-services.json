@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "232422005091",
+    "firebase_url": "https://iotapp-gps.firebaseio.com",
+    "project_id": "iotapp-gps",
+    "storage_bucket": "iotapp-gps.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:232422005091:android:b5526113589cbef7",
+        "android_client_info": {
+          "package_name": "com.avi.tal.iot.iotapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "232422005091-2apmoskaj9r9pt847i5e3oejg20hq52s.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "232422005091-2apmoskaj9r9pt847i5e3oejg20hq52s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPvK1rJWfGRVaskdTG-EbmNSnYw3QNNnY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
