@@ -20,6 +20,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,11 +28,20 @@ import com.avi.tal.iot.BuildConfig;
 import com.avi.tal.iot.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-
+    private Button mSendData;
+    private FirebaseDatabase database;
+    private DatabaseReference myRef;
+    private DatabaseReference myRef1;
+    JSONObject obj = new JSONObject();
     /**
      * Code used in requesting runtime permissions.
      */
@@ -47,6 +57,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.main_layout);
         mMsgView = (TextView) findViewById(R.id.msgView);
 
+        mSendData = (Button) findViewById(R.id.SendData);
+
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("Message");
+        myRef1 = database.getReference("Tal");
+
+
 
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 new BroadcastReceiver() {
@@ -57,6 +74,18 @@ public class MainActivity extends AppCompatActivity {
 
                         if (latitude != null && longitude != null) {
                             mMsgView.setText(getString(R.string.msg_location_service_started) + "\n Latitude : " + latitude + "\n Longitude: " + longitude);
+                            try {
+                                obj.put("Latitude", latitude);
+                                obj.put("Longitude", longitude);
+                                /*myRef.setValue(obj);*/
+                                myRef1.child("Latitude").push().setValue(latitude);
+                                myRef1.child("Longitude").push().setValue(longitude);
+                            } catch (JSONException e) {
+                                myRef.setValue("Failed to get gps location");
+                                e.printStackTrace();
+                            }
+
+
                         }
                     }
                 }, new IntentFilter(LocationMonitoringService.ACTION_LOCATION_BROADCAST)
