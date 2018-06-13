@@ -2,6 +2,7 @@ package com.avi.tal.iot.iotapp;
 
 import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
@@ -11,6 +12,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.avi.tal.iot.R;
+import com.google.firebase.FirebaseError;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 /*import butterknife.ButterKnife;
 import butterknife.InjectView;*/
@@ -28,6 +36,8 @@ public class LoginActivity extends AppCompatActivity {
     private EditText _passwordText;
     private Button _loginButton;
 
+    private FirebaseDatabase database;
+    private DatabaseReference myRef;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -59,8 +69,8 @@ public class LoginActivity extends AppCompatActivity {
 
         _loginButton.setEnabled(false);
 
-        final ProgressDialog progressDialog = new ProgressDialog(LoginActivity.this,
-                R.style.AppTheme_Dark_Dialog);
+        final ProgressDialog progressDialog = new ProgressDialog(LoginActivity.this);
+                //= new ProgressDialog(LoginActivity.this, R.style.AppTheme_Dark_Dialog);
         progressDialog.setIndeterminate(true);
         progressDialog.setMessage("Authenticating...");
         progressDialog.show();
@@ -114,8 +124,12 @@ public class LoginActivity extends AppCompatActivity {
     public boolean validate() {
         boolean valid = true;
 
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("Auth");
+
         String email = _emailText.getText().toString();
         String password = _passwordText.getText().toString();
+        String ret_password;
 
         if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             _emailText.setError("enter a valid email address");
@@ -130,6 +144,39 @@ public class LoginActivity extends AppCompatActivity {
         } else {
             _passwordText.setError(null);
         }
+        email = email.split("@")[0];
+        email = email.toString();
+        ret_password = myRef.child(email).getKey();
+
+        myRef.child(email).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                try {
+                    if (snapshot.getValue() != null) {
+                        try {
+                            Log.e("TAG", "" + snapshot.getValue());
+                            ret_password = snapshot.getValue(); // your name values you will get here
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        Log.e("TAG", " it's null.");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                //e.printStackTrace();
+            }
+
+/*            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+                Log.e("onCancelled", " cancelled");
+            }*/
+        });
 
         return valid;
     }
