@@ -16,6 +16,14 @@ public class Location {
         return lat;
     }
 
+    public Float getLatFloat(){
+        return Float.parseFloat(lat);
+    }
+
+    public Float getLonFloat(){
+        return Float.parseFloat(lon);
+    }
+
     public void setLat(String lat) {
         this.lat = lat;
     }

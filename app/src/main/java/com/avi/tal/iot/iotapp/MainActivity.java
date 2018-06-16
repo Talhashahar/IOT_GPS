@@ -48,6 +48,9 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Vector;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -56,7 +59,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private FirebaseDatabase database;
     private DatabaseReference myRef;
     private DatabaseReference myRef1;
+    private double Distance;
     HashMap<String, TrackerUser> users = new HashMap<>();
+    HashMap<String, TrackerUser> user = new HashMap<>();
+    private Vector<String> groups = new Vector<>();
+    private String[] sGroups;
     /**
      * Code used in requesting runtime permissions.
      */
@@ -93,6 +100,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         findViewById(R.id.sign_out_button).setOnClickListener(this);
         findViewById(R.id.disconnect_button).setOnClickListener(this);
+        findViewById(R.id.my_group_button).setOnClickListener(this);
 
         mDisplayUserName = getIntent().getStringExtra("userName");
         mMsgView = (TextView) findViewById(R.id.msgView);
@@ -121,6 +129,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 }
 
+                for (Map.Entry<String, TrackerUser> entry : users.entrySet()) {
+                    if (entry.getValue().getDisplayName().equals(mDisplayUserName)){
+                        for (Map.Entry<String, TrackerUser> inside : users.entrySet()){
+                            if (!(entry.getValue().getDisplayName().equals(inside.getValue().getDisplayName()))){
+                                Distance = meterDistanceBetweenPoints(entry.getValue().getLocation().getLatFloat(),entry.getValue().getLocation().getLonFloat(), inside.getValue().getLocation().getLatFloat(), inside.getValue().getLocation().getLonFloat());
+                                if (Distance < 100){
+                                    groups.add(inside.getValue().getDisplayName());
+                                }
+                            }
+                        }
+                    }
+
+                }
+                sGroups = new String[groups.size()];
+                for (int i =0; i < groups.size(); ++i){
+                    sGroups[i] = groups.elementAt(i);
+                }
             }
 
             @Override
@@ -423,6 +448,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             signOut();
         } else if (i == R.id.disconnect_button) {
             revokeAccess();
+        } else if (i == R.id.my_group_button){
+            Intent inter = new Intent(MainActivity.this, group_friends.class);
+            inter.putExtra("groupFriends", sGroups);
+            startActivity(inter);
+            finish();
         }
     }
 
@@ -456,6 +486,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         finish();
                     }
                 });
+    }
+
+    private double meterDistanceBetweenPoints(float lat_a, float lng_a, float lat_b, float lng_b) {
+        float pk = (float) (180.f/Math.PI);
+
+        float a1 = lat_a / pk;
+        float a2 = lng_a / pk;
+        float b1 = lat_b / pk;
+        float b2 = lng_b / pk;
+
+        double t1 = Math.cos(a1) * Math.cos(a2) * Math.cos(b1) * Math.cos(b2);
+        double t2 = Math.cos(a1) * Math.sin(a2) * Math.cos(b1) * Math.sin(b2);
+        double t3 = Math.sin(a1) * Math.sin(b1);
+        double tt = Math.acos(t1 + t2 + t3);
+
+        return 6366000 * tt;
     }
 
 }

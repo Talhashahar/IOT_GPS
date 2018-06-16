@@ -9,7 +9,7 @@ android {
         Tracker {
             keyAlias 'tracker'
             keyPassword 'tracker'
-            storeFile file('/Users/maorsisso/tals_project/debugkeystore/tracker.keystore')
+            storeFile file('C:/Users/talha_000/Desktop/IOT_GPS/debugkeystore/tracker.keystore')
             storePassword 'tracker'
         }
     }
@@ -45,7 +45,6 @@ dependencies {
     implementation 'com.google.firebase:firebase-core:16.0.0'
     implementation 'com.google.android.gms:play-services-auth:15.0.1'
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.0.1'
-
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.0.1'
 }
 apply plugin: 'com.google.gms.google-services'
