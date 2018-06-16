@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -13,17 +13,39 @@
         android:textSize="20sp"
         android:textColor="#000"
         android:text="@string/msg_location_service_not_started"
+        android:layout_centerInParent="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/SendData"
-        android:layout_width="319dp"
-        android:layout_height="wrap_content"
-        android:text="Send Data to Firebase"
-        tools:layout_editor_absoluteX="31dp"
-        tools:layout_editor_absoluteY="446dp" />
+    <LinearLayout
+        android:id="@+id/sign_out_and_disconnect"
+        android:layout_width="377dp"
+        android:layout_height="54dp"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:visibility="visible">
 
-</android.support.constraint.ConstraintLayout>
+        <Button
+            android:id="@+id/sign_out_button"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/sign_out"
+            android:theme="@style/ThemeOverlay.MyDarkButton" />
+
+        <Button
+            android:id="@+id/disconnect_button"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/disconnect"
+            android:theme="@style/ThemeOverlay.MyDarkButton" />
+    </LinearLayout>
+
+</RelativeLayout>

@@ -26,22 +26,37 @@ import android.widget.Toast;
 
 import com.avi.tal.iot.BuildConfig;
 import com.avi.tal.iot.R;
+import com.avi.tal.iot.iotapp.entities.Location;
+import com.avi.tal.iot.iotapp.entities.TrackerUser;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class MainActivity extends AppCompatActivity {
+import java.util.ArrayList;
+import java.util.HashMap;
+
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private Button mSendData;
     private FirebaseDatabase database;
     private DatabaseReference myRef;
     private DatabaseReference myRef1;
-    JSONObject obj = new JSONObject();
+    HashMap<String, TrackerUser> users = new HashMap<>();
     /**
      * Code used in requesting runtime permissions.
      */
@@ -51,19 +66,69 @@ public class MainActivity extends AppCompatActivity {
     private boolean mAlreadyStartedService = false;
     private TextView mMsgView;
 
+    private String mDisplayUserName;
+
+    private FirebaseAuth mAuth;
+    private GoogleSignInClient mGoogleSignInClient;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_layout);
+
+        // [START config_signin]
+        // Configure Google Sign In
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+        // [END config_signin]
+
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+
+        // [START initialize_auth]
+        mAuth = FirebaseAuth.getInstance();
+        // [END initialize_auth]
+
+        findViewById(R.id.sign_out_button).setOnClickListener(this);
+        findViewById(R.id.disconnect_button).setOnClickListener(this);
+
+        mDisplayUserName = getIntent().getStringExtra("userName");
         mMsgView = (TextView) findViewById(R.id.msgView);
 
-        mSendData = (Button) findViewById(R.id.SendData);
+
 
         database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("Message");
-        myRef1 = database.getReference("Tal");
+        myRef = database.getReference("users_tracker");
 
 
+        myRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                // This method is called once with the initial value and again
+                // whenever data at this location is updated.
+                final ObjectMapper mapper = new ObjectMapper(); // jackson's objectmapper
+
+                for (DataSnapshot imageSnapshot: dataSnapshot.getChildren()) {
+//                    imagesDir.add(imageSnapshot.child("users_tracker").getValue(String.class));
+                    final TrackerUser pojo = mapper.convertValue(imageSnapshot.getValue(), TrackerUser.class);
+                    if(users.get(pojo.getDisplayName()) != null) {
+                        users.get(pojo.getDisplayName()).setLocation(new Location(pojo.getLocation().getLat(), pojo.getLocation().getLon()));
+                    } else {
+                        users.put(pojo.getDisplayName(), pojo);
+                    }
+
+                }
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                // Failed to read value
+                Log.w(TAG, "Failed to read value.", databaseError.toException());
+            }
+        });
 
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 new BroadcastReceiver() {
@@ -75,13 +140,12 @@ public class MainActivity extends AppCompatActivity {
                         if (latitude != null && longitude != null) {
                             mMsgView.setText(getString(R.string.msg_location_service_started) + "\n Latitude : " + latitude + "\n Longitude: " + longitude);
                             try {
-                                obj.put("Latitude", latitude);
-                                obj.put("Longitude", longitude);
-                                /*myRef.setValue(obj);*/
-                                myRef1.child("Latitude").push().setValue(latitude);
-                                myRef1.child("Longitude").push().setValue(longitude);
-                            } catch (JSONException e) {
-                                myRef.setValue("Failed to get gps location");
+
+
+                                myRef.child(mDisplayUserName).child("location").child("lat").setValue(latitude);
+                                myRef.child(mDisplayUserName).child("location").child("lon").setValue(longitude);
+                                myRef.child(mDisplayUserName).child("displayName").setValue(mDisplayUserName);
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
 
@@ -350,6 +414,48 @@ public class MainActivity extends AppCompatActivity {
 
 
         super.onDestroy();
+    }
+
+    @Override
+    public void onClick(View v) {
+        int i = v.getId();
+        if (i == R.id.sign_out_button) {
+            signOut();
+        } else if (i == R.id.disconnect_button) {
+            revokeAccess();
+        }
+    }
+
+    private void signOut() {
+        // Firebase sign out
+        mAuth.signOut();
+
+        // Google sign out
+        mGoogleSignInClient.signOut().addOnCompleteListener(this,
+                new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        Intent i = new Intent(MainActivity.this, LoginActivity.class);
+                        startActivity(i);
+                        finish();
+                    }
+                });
+    }
+
+    private void revokeAccess() {
+        // Firebase sign out
+        mAuth.signOut();
+
+        // Google revoke access
+        mGoogleSignInClient.revokeAccess().addOnCompleteListener(this,
+                new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        Intent i = new Intent(MainActivity.this, LoginActivity.class);
+                        startActivity(i);
+                        finish();
+                    }
+                });
     }
 
 }

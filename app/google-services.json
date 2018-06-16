@@ -1,39 +1,39 @@
 {
   "project_info": {
-    "project_number": "860905402133",
-    "firebase_url": "https://tracker-5150.firebaseio.com",
-    "project_id": "tracker-5150",
-    "storage_bucket": "tracker-5150.appspot.com"
+    "project_number": "917884636192",
+    "firebase_url": "https://tracker-51550.firebaseio.com",
+    "project_id": "tracker-51550",
+    "storage_bucket": "tracker-51550.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:860905402133:android:354e848221564b16",
+        "mobilesdk_app_id": "1:917884636192:android:b5526113589cbef7",
         "android_client_info": {
-          "package_name": "com.avi.tal.iot"
+          "package_name": "com.avi.tal.iot.iotapp"
         }
       },
       "oauth_client": [
         {
-          "client_id": "860905402133-9b6qj2pnfegflme0rjlvis8l77tfu68p.apps.googleusercontent.com",
+          "client_id": "917884636192-g428ihpb82d6haej88qkc89jqqimvtd5.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.avi.tal.iot",
-            "certificate_hash": "30e17ca5559b4c2e3f4b4c06f4189b673d7c8434"
+            "package_name": "com.avi.tal.iot.iotapp",
+            "certificate_hash": "3f14d392245b546d4cd71153ffa8c1f866e5cd11"
           }
         },
         {
-          "client_id": "860905402133-nih0gasvh1gc2bcudpfa64opsobonkem.apps.googleusercontent.com",
+          "client_id": "917884636192-u3277stvgjeorvgpim56quqeqo0rrfhm.apps.googleusercontent.com",
           "client_type": 3
         },
         {
-          "client_id": "860905402133-nih0gasvh1gc2bcudpfa64opsobonkem.apps.googleusercontent.com",
+          "client_id": "917884636192-u3277stvgjeorvgpim56quqeqo0rrfhm.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAHc7Bs_LZklVrf56ADFu3tuxzebJx_izI"
+          "current_key": "AIzaSyCor1jPoNAtQmCMzzzVWMw-JtI2z06E-Gc"
         }
       ],
       "services": {
@@ -44,7 +44,7 @@
           "status": 2,
           "other_platform_oauth_client": [
             {
-              "client_id": "860905402133-nih0gasvh1gc2bcudpfa64opsobonkem.apps.googleusercontent.com",
+              "client_id": "917884636192-u3277stvgjeorvgpim56quqeqo0rrfhm.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
