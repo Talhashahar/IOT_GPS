@@ -9,7 +9,7 @@ android {
         Tracker {
             keyAlias 'tracker'
             keyPassword 'tracker'
-            storeFile file('C:/Users/talha_000/Desktop/IOT_GPS/debugkeystore/tracker.keystore')
+            storeFile file('/Users/maorsisso/Desktop/IotTemp/IOT_GPS/debugkeystore/tracker.keystore')
             storePassword 'tracker'
         }
     }

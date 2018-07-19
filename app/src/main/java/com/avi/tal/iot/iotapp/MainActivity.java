@@ -7,6 +7,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -17,7 +21,6 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -43,16 +46,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends BaseActivity implements View.OnClickListener, SensorEventListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private Button mSendData;
@@ -63,7 +62,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     HashMap<String, TrackerUser> users = new HashMap<>();
     HashMap<String, TrackerUser> user = new HashMap<>();
     private Vector<String> groups = new Vector<>();
-    private String[] sGroups;
+    private ArrayList<TrackerUser> mGroups = new ArrayList<>();
+
+    private SensorManager mSensorManager;
+    private Sensor mLightSensor;
+    private float currentLight;
+    private float maxLight;
+
     /**
      * Code used in requesting runtime permissions.
      */
@@ -83,6 +88,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_layout);
+
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mLightSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
 
         // [START config_signin]
         // Configure Google Sign In
@@ -130,21 +138,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
 
                 for (Map.Entry<String, TrackerUser> entry : users.entrySet()) {
+
                     if (entry.getValue().getDisplayName().equals(mDisplayUserName)){
-                        for (Map.Entry<String, TrackerUser> inside : users.entrySet()){
-                            if (!(entry.getValue().getDisplayName().equals(inside.getValue().getDisplayName()))){
-                                Distance = meterDistanceBetweenPoints(entry.getValue().getLocation().getLatFloat(),entry.getValue().getLocation().getLonFloat(), inside.getValue().getLocation().getLatFloat(), inside.getValue().getLocation().getLonFloat());
+
+                        TrackerUser myUser = entry.getValue();
+                        if(mGroups.contains(myUser)) {
+                            mGroups.get(mGroups.indexOf(myUser)).setMaxLight(maxLight);
+                        } else {
+                            mGroups.add(myUser);
+                        }
+
+
+                        for (Map.Entry<String, TrackerUser> inside : users.entrySet()) {
+                            if (!(entry.getValue().getDisplayName().equals(inside.getValue().getDisplayName()))) {
+                                Distance = meterDistanceBetweenPoints(myUser.getLocation().getLatFloat(),myUser.getLocation().getLonFloat(), inside.getValue().getLocation().getLatFloat(), inside.getValue().getLocation().getLonFloat());
                                 if (Distance < 100){
-                                    groups.add(inside.getValue().getDisplayName());
+                                    if(mGroups.contains(inside.getValue())) {
+                                        mGroups.get(mGroups.indexOf(inside.getValue())).setMaxLight(maxLight);
+                                    } else {
+                                        mGroups.add(inside.getValue());
+                                    }
                                 }
                             }
                         }
                     }
 
-                }
-                sGroups = new String[groups.size()];
-                for (int i =0; i < groups.size(); ++i){
-                    sGroups[i] = groups.elementAt(i);
                 }
             }
 
@@ -163,13 +181,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         String longitude = intent.getStringExtra(LocationMonitoringService.EXTRA_LONGITUDE);
 
                         if (latitude != null && longitude != null) {
-                            mMsgView.setText(getString(R.string.msg_location_service_started) + "\n Latitude : " + latitude + "\n Longitude: " + longitude);
+                            mMsgView.setText(getString(R.string.msg_location_service_started) + "\n Latitude : " + latitude + "\n Longitude: " + longitude + "\n Max Light:" + maxLight);
                             try {
 
 
                                 myRef.child(mDisplayUserName).child("location").child("lat").setValue(latitude);
                                 myRef.child(mDisplayUserName).child("location").child("lon").setValue(longitude);
                                 myRef.child(mDisplayUserName).child("displayName").setValue(mDisplayUserName);
+                                myRef.child(mDisplayUserName).child("maxLight").setValue(maxLight);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -181,13 +200,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         );
     }
 
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        startStep1();
-    }
 
 
     /**
@@ -449,10 +461,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else if (i == R.id.disconnect_button) {
             revokeAccess();
         } else if (i == R.id.my_group_button){
-            Intent inter = new Intent(MainActivity.this, group_friends.class);
-            inter.putExtra("groupFriends", sGroups);
+            Intent inter = new Intent(MainActivity.this, GroupFriendsActivity.class);
+            inter.putParcelableArrayListExtra("groupFriends", mGroups);
             startActivity(inter);
-            finish();
         }
     }
 
@@ -502,6 +513,38 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         double tt = Math.acos(t1 + t2 + t3);
 
         return 6366000 * tt;
+    }
+
+
+    @Override
+    public void onSensorChanged(SensorEvent sensorEvent) {
+        if(sensorEvent.sensor.getType() == Sensor.TYPE_LIGHT) {
+            currentLight = sensorEvent.values[0];
+            if (currentLight > maxLight) {
+                maxLight = currentLight;
+            }
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(android.hardware.Sensor sensor, int i) {
+        if(sensor.getType() == Sensor.TYPE_LIGHT) {
+
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mSensorManager.registerListener(this, mLightSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        startStep1();
+    }
+
+    @Override
+    protected void onPause() {
+        // Be sure to unregister the sensor when the activity pauses.
+        super.onPause();
+        mSensorManager.unregisterListener(this);
     }
 
 }
